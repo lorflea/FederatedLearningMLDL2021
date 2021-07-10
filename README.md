@@ -1,9 +1,12 @@
 # Federated Learning [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4321561.svg)](https://doi.org/10.5281/zenodo.4321561)
 
-This is partly the reproduction of the paper of [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629)   
-Only experiments on MNIST and CIFAR10 (both IID and non-IID) is produced by far.
+This work is a comparison between the best known federated learning algorithms, the experiments are made CIFAR10 in a non-IID scenario.
+Based on the following works:
 
-Note: The scripts will be slow without the implementation of parallel computing. 
+[Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629)  
+[Federated Optimization in Heterogeneous Networks](https://arxiv.org/pdf/1812.06127.pdf)
+[SCAFFOLD: Stochastic Controlled Averaging for Federated Learning](https://arxiv.org/pdf/1910.06378.pdf)
+
 
 ## Requirements
 python>=3.6  
