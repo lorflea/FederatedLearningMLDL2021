@@ -1,4 +1,4 @@
-# Federated Learning [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4321561.svg)](https://doi.org/10.5281/zenodo.4321561)
+# Federated Learning MLDL-2021
 
 This work is a comparison between the best known federated learning algorithms, the experiments are made CIFAR10 in a non-IID scenario.
 Based on the following works:
