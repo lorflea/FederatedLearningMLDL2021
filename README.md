@@ -3,8 +3,10 @@
 This work is a comparison between the best known federated learning algorithms, the experiments are made CIFAR10 in a non-IID scenario.
 Based on the following works:
 
-[Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629)  
+[Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629)
+<br>
 [Federated Optimization in Heterogeneous Networks](https://arxiv.org/pdf/1812.06127.pdf)
+<br>
 [SCAFFOLD: Stochastic Controlled Averaging for Federated Learning](https://arxiv.org/pdf/1910.06378.pdf)
 
 
