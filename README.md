@@ -16,20 +16,14 @@ pytorch>=0.4
 
 ## Run
 
-The MLP and CNN models are produced by:
-> python [main_nn.py](main_nn.py)
-
-Federated learning with MLP and CNN is produced by:
-> python [main_fed.py](main_fed.py)
 
 See the arguments in [options.py](utils/options.py). 
 
 For example:
-> python main_fed.py --dataset mnist --iid --num_channels 1 --model cnn --epochs 50 --gpu 0  
+> python main_fed.py --model lenet --alpha 0.05 --epochs 50 
 
 `--all_clients` for averaging over all client models
 
-NB: for CIFAR-10, `num_channels` must be 3.
 
 ## Results
 ### MNIST
@@ -51,12 +45,6 @@ Table 2. results of 50 epochs training with the learning rate of 0.01
 
 
 ## Ackonwledgements
-Acknowledgements give to [youkaichao](https://github.com/youkaichao).
-
-## References
-McMahan, Brendan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas. Communication-Efficient Learning of Deep Networks from Decentralized Data. In Artificial Intelligence and Statistics (AISTATS), 2017.
-
-## Cite As
-Shaoxiong Ji. (2018, March 30). A PyTorch Implementation of Federated Learning. Zenodo. http://doi.org/10.5281/zenodo.4321561
+Acknowledgements give to [shaoxiongji](https://github.com/shaoxiongji).
 
 
