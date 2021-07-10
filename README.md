@@ -18,7 +18,7 @@ pytorch>=0.4
 See the arguments in [options.py](utils/options.py). 
 
 For example:
-> python main_fed.py --model lenet --alpha 0.05 --epochs 50 
+> python main_fed.py --alg fedprox --model lenet --alpha 0.05 --epochs 50 --local_ep 10
 
 `--all_clients` for averaging over all client models
 
