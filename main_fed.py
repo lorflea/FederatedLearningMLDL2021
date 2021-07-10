@@ -12,7 +12,7 @@ import torch
 
 from utils.sampling import cifar_iid, cifar_noniid, cifar_noniid_unequal, get_dict_users
 from utils.options import args_parser
-from models.Update import LocalUpdate
+from models.Update import LocalUpdate, LocalProxUpdate
 from models.Nets import MLP, CNNMnist, CNNCifar, LeNet, DLA, AlexNet
 from models.TestNets import ResNet18, ResNet101, CNNHyper, CNNTarget
 from models.Fed import FedAvg2
@@ -101,9 +101,18 @@ if __name__ == '__main__':
         m = max(int(args.frac * args.num_users), 1)
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         for idx in idxs_users:
-            local = LocalUpdate(args=args, dataset=dataset_train, idxs=dict_users[idx])
 
-            w, loss = local.train(net=copy.deepcopy(net_glob).to(args.device))
+            if args.alg == 'fedavg':
+                local = LocalUpdate(args=args, dataset=dataset_train, idxs=dict_users[idx])
+                w, loss = local.train(net=copy.deepcopy(net_glob).to(args.device))
+
+            elif args.alg == 'fedprox':
+                local = LocalProxUpdate(args=args, dataset=dataset_train, idxs=dict_users[idx])
+                w, loss = local.train(server_net=copy.deepcopy(net_glob).to(args.device), net=copy.deepcopy(net_glob).to(args.device), num_class=num_class_users[idx])
+
+            else:
+                exit('Error: unrecognized aggregation algorithm')
+
             if args.all_clients:
                 w_locals[idx] = copy.deepcopy(w)
             else:

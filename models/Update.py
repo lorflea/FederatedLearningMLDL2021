@@ -9,13 +9,6 @@ import numpy as np
 import random
 from sklearn import metrics
 
-def FedProxLoss(output, target, previousWeights, currentWeights):
-  mu = 1
-  cross_entropy_loss = nn.CrossEntropyLoss()
-  loss = cross_entropy_loss(output, target) + (mu/2)*(torch.diff(currentWeights, previousWeights)**2)
-  print(loss)
-  return loss
-
 class DatasetSplit(Dataset):
     def __init__(self, dataset, idxs):
         self.dataset = dataset
@@ -52,7 +45,6 @@ class LocalUpdate(object):
                 net.zero_grad()
                 log_probs = net(images)
                 loss = self.loss_func(log_probs, labels)
-                #loss = FedProxLoss(log_probs, labels, pw, net.parameters())
                 loss.backward()
                 optimizer.step()
                 if self.args.verbose and batch_idx % 10 == 0:
@@ -64,3 +56,45 @@ class LocalUpdate(object):
 
         return net.state_dict(), sum(epoch_loss) / len(epoch_loss)
 
+
+class LocalProxUpdate(object):
+    def __init__(self, args, dataset=None, idxs=None):
+        self.args = args
+        self.loss_func = nn.CrossEntropyLoss()
+        self.selected_clients = []
+        self.ldr_train = DataLoader(DatasetSplit(dataset, idxs), batch_size=self.args.local_bs, shuffle=True)
+
+    def train(self, server_net, net, num_class):
+
+        #pw = net.parameters()
+
+        net.train()
+        # train and update
+        optimizer = torch.optim.SGD(net.parameters(), lr=self.args.lr, momentum=self.args.momentum)
+
+        epoch_loss = []
+        for iter in range(self.args.local_ep):
+            batch_loss = []
+            for batch_idx, (images, labels) in enumerate(self.ldr_train):
+                images, labels = images.to(self.args.device), labels.to(self.args.device)
+                net.zero_grad()
+                log_probs = net(images)
+                loss = self.loss_func(log_probs, labels)
+                loss.backward()
+                
+                ### Fedprox ###
+                #mu = (10 - num_class) * 0.001/(10 - 1.32)
+                mu = 0.001
+                for client_param, server_param in zip(net.parameters(), server_net.parameters()):
+                  loss += (mu/2)*torch.norm(client_param.data - server_param.data)
+                  client_param.grad.data += mu * (client_param.data - server_param.data)
+
+                optimizer.step()
+                if self.args.verbose and batch_idx % 10 == 0:
+                    print('Update Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                        iter, batch_idx * len(images), len(self.ldr_train.dataset),
+                               100. * batch_idx / len(self.ldr_train), loss.item()))
+                batch_loss.append(loss.item())
+            epoch_loss.append(sum(batch_loss)/len(batch_loss))
+
+        return net.state_dict(), sum(epoch_loss) / len(epoch_loss)
