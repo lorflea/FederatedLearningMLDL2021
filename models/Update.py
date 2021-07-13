@@ -47,10 +47,7 @@ class LocalUpdate(object):
                 loss = self.loss_func(log_probs, labels)
                 loss.backward()
                 optimizer.step()
-                if self.args.verbose and batch_idx % 10 == 0:
-                    print('Update Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                        iter, batch_idx * len(images), len(self.ldr_train.dataset),
-                               100. * batch_idx / len(self.ldr_train), loss.item()))
+                
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss)/len(batch_loss))
 
@@ -83,17 +80,15 @@ class LocalProxUpdate(object):
                 loss.backward()
                 
                 ### Fedprox ###
-                #mu = (10 - num_class) * 0.001/(10 - 1.32)
+                #mu = ((10 - num_class)/(10 - 1.32))**3 * 0.001
                 mu = 0.001
+
                 for client_param, server_param in zip(net.parameters(), server_net.parameters()):
                   loss += (mu/2)*torch.norm(client_param.data - server_param.data)
                   client_param.grad.data += mu * (client_param.data - server_param.data)
 
                 optimizer.step()
-                if self.args.verbose and batch_idx % 10 == 0:
-                    print('Update Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                        iter, batch_idx * len(images), len(self.ldr_train.dataset),
-                               100. * batch_idx / len(self.ldr_train), loss.item()))
+   
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss)/len(batch_loss))
 

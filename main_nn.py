@@ -13,7 +13,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms, models
 
 from utils.options import args_parser
-from models.Nets import MLP, CNNMnist, CNNCifar, LeNet
+from models.Nets import LeNet
 
 
 def test(net_g, data_loader):
@@ -45,46 +45,18 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     # load dataset and split users
-    if args.dataset == 'mnist':
-        dataset_train = datasets.MNIST('./data/mnist/', train=True, download=True,
-                   transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ]))
-        img_size = dataset_train[0][0].shape
-    elif args.dataset == 'cifar':
-        transform = transforms.Compose(
-            [transforms.ToTensor(),
-             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        dataset_train = datasets.CIFAR10('./data/cifar', train=True, transform=transform, target_transform=None, download=True)
-        img_size = dataset_train[0][0].shape
-    else:
-        exit('Error: unrecognized dataset')
+    transform = transforms.Compose(
+        [transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    dataset_train = datasets.CIFAR10('./data/cifar', train=True, transform=transform, target_transform=None, download=True)
+    img_size = dataset_train[0][0].shape
 
     # build model
-    if args.model == 'cnn' and args.dataset == 'cifar':
-        net_glob = CNNCifar(args=args).to(args.device)
-    elif args.model == 'cnn' and args.dataset == 'mnist':
-        net_glob = CNNMnist(args=args).to(args.device)
-    elif args.model == 'mlp':
-        len_in = 1
-        for x in img_size:
-            len_in *= x
-        net_glob = MLP(dim_in=len_in, dim_hidden=64, dim_out=args.num_classes).to(args.device)
-    elif args.model == 'lenet':
+    if args.model == 'lenet':
       net_glob = LeNet().to(args.device)
-
-    elif args.model == 'lenet':
-        net_glob = LeNet().to(args.device)
 
     elif args.model == 'googlenet':
         net_glob = models.googlenet(pretrained=True).to(args.device)
-
-    elif args.model == 'dla':
-        net_glob = DLA().to(args.device)
-    
-    elif args.model == 'resnet101':
-        net_glob = ResNet101().to(args.device)
    
     elif args.model == 'resnet18':
         net_glob = models.resnet18(pretrained=True).to(args.device)
@@ -94,7 +66,6 @@ if __name__ == '__main__':
    
     else:
         exit('Error: unrecognized model')
-    print(net_glob)
 
     # training
     optimizer = optim.SGD(net_glob.parameters(), lr=args.lr, momentum=args.momentum)
@@ -121,21 +92,11 @@ if __name__ == '__main__':
         list_loss.append(loss_avg)
 
     # testing
-    if args.dataset == 'mnist':
-        dataset_test = datasets.MNIST('./data/mnist/', train=False, download=True,
-                   transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ]))
-        test_loader = DataLoader(dataset_test, batch_size=1000, shuffle=False)
-    elif args.dataset == 'cifar':
-        transform = transforms.Compose(
-            [transforms.ToTensor(),
-             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        dataset_test = datasets.CIFAR10('./data/cifar', train=False, transform=transform, target_transform=None, download=True)
-        test_loader = DataLoader(dataset_test, batch_size=1000, shuffle=False)
-    else:
-        exit('Error: unrecognized dataset')
+    transform = transforms.Compose(
+        [transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    dataset_test = datasets.CIFAR10('./data/cifar', train=False, transform=transform, target_transform=None, download=True)
+    test_loader = DataLoader(dataset_test, batch_size=1000, shuffle=False)
 
     print('test on', len(dataset_test), 'samples')
     test_acc, test_loss = test(net_glob, test_loader)

@@ -13,9 +13,8 @@ import torch
 from utils.sampling import cifar_iid, cifar_noniid, cifar_noniid_unequal, get_dict_users
 from utils.options import args_parser
 from models.Update import LocalUpdate, LocalProxUpdate
-from models.Nets import MLP, CNNMnist, CNNCifar, LeNet, DLA, AlexNet
-from models.TestNets import ResNet18, ResNet101, CNNHyper, CNNTarget
-from models.Fed import FedAvg2
+from models.Nets import LeNet
+from models.Fed import FedAvg
 from models.test import test_img 
 
 if __name__ == '__main__':
@@ -35,43 +34,22 @@ if __name__ == '__main__':
     img_size = dataset_train[0][0].shape
 
     # build model
-    if args.model == 'cnn' and args.dataset == 'cifar':
-        net_glob = CNNCifar(args=args).to(args.device)
-    elif args.model == 'cnn' and args.dataset == 'mnist':
-        net_glob = CNNMnist(args=args).to(args.device)
-    elif args.model == 'mlp':
-        len_in = 1
-        for x in img_size:
-            len_in *= x
-        net_glob = MLP(dim_in=len_in, dim_hidden=200, dim_out=args.num_classes).to(args.device)
-    
-    elif args.model == 'lenet':
+    if args.model == 'lenet':
         net_glob = LeNet().to(args.device)
 
     elif args.model == 'googlenet':
         net_glob = models.googlenet(pretrained=True).to(args.device)
 
-    elif args.model == 'dla':
-        net_glob = DLA().to(args.device)
-    
-    elif args.model == 'resnet101':
-        net_glob = ResNet101().to(args.device)
    
     elif args.model == 'resnet18':
         net_glob = models.resnet18(pretrained=True).to(args.device)
 
     elif args.model == 'resnet50':
         net_glob = models.resnet50(pretrained=True).to(args.device)
-   
-    elif args.model == 'resnet101':
-        net_glob = models.resnet101(pretrained=True).to(args.device)
 
     elif args.model == 'alexnet':
         net_glob = AlexNet().to(args.device)
-   
-    elif args.model == 'cnnhyper':
-        net_glob = CNNTarget().to(args.device)
-    
+ 
     else:
         exit('Error: unrecognized model')
 
@@ -88,6 +66,7 @@ if __name__ == '__main__':
     net_best = None
     best_loss = None
     val_acc_list, net_list = [], []
+    accur = []
 
     if args.all_clients: 
         print("Aggregation over all clients")
@@ -122,22 +101,21 @@ if __name__ == '__main__':
 
             loss_locals.append(copy.deepcopy(loss))
 
-        w_glob = FedAvg2(w_locals, len_locals)
+        w_glob = FedAvg(w_locals, len_locals)
 
         # copy weight to net_glob
         net_glob.load_state_dict(w_glob)
+
+        acc_test, loss_test = test_img(net_glob, dataset_test, args)
+        print('Round {:3d}, Testing accuracy {:.3f}'.format(iter, acc_test))
+        accur.append(float(acc_test))
+        print(accur)
 
         # print loss
         loss_avg = sum(loss_locals) / len(loss_locals)
         print('Round {:3d}, Average loss {:.3f}'.format(iter, loss_avg))
         loss_train.append(loss_avg)
-
-    # plot loss curve
-    plt.figure()
-    plt.plot(range(len(loss_train)), loss_train)
-    plt.ylabel('train_loss')
-    plt.savefig('./save/fed_{}_{}_{}_C{}_iid{}.png'.format(args.dataset, args.model, args.epochs, args.frac, args.iid))
-
+    
     # testing
     net_glob.eval()
     acc_train, loss_train = test_img(net_glob, dataset_train, args)

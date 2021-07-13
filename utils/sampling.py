@@ -6,11 +6,14 @@
 import numpy as np
 from torchvision import datasets, transforms
 import csv
+import os.path
 
 def get_dict_users(alpha):
   results = np.empty(100, dtype=object)
   labels = np.empty(50000, dtype=object)
-  with open("/Users/lorenzodimartino/Downloads/federated-learning-master 2 2/data/cifar/federated_train_alpha_" + alpha + ".csv") as csvfile:
+
+  path = os.path.abspath(os.path.dirname(__file__))
+  with open(os.path.join(path, "../data/cifar/federated_train_alpha_" + alpha + ".csv")) as csvfile:
       reader = csv.reader(csvfile) # change contents to floats
       next(reader, None)
 
